@@ -5,12 +5,12 @@ const mongoose = require("mongoose");
 const app = express();
 app.use(express.json());
 
-// 🔌 Connect MongoDB
+// connect MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log(err));
 
-// 🔑 Key Schema
+// schema
 const keySchema = new mongoose.Schema({
   key: String,
   device: { type: String, default: null }
@@ -18,44 +18,34 @@ const keySchema = new mongoose.Schema({
 
 const Key = mongoose.model("Key", keySchema);
 
-// ✅ CHECK KEY (THIS FIXES YOUR ERROR)
+// ✅ THIS IS THE IMPORTANT PART
 app.post("/check", async (req, res) => {
-  try {
-    const { key, device } = req.body;
+  const { key, device } = req.body;
 
-    const found = await Key.findOne({ key });
+  const found = await Key.findOne({ key });
 
-    if (!found) {
-      return res.json({ success: false });
-    }
-
-    // first time use → bind device
-    if (!found.device) {
-      found.device = device;
-      await found.save();
-      return res.json({ success: true });
-    }
-
-    // same device → allow
-    if (found.device === device) {
-      return res.json({ success: true });
-    }
-
-    // different device → deny
+  if (!found) {
     return res.json({ success: false });
-
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json({ success: false });
   }
+
+  if (!found.device) {
+    found.device = device;
+    await found.save();
+    return res.json({ success: true });
+  }
+
+  if (found.device === device) {
+    return res.json({ success: true });
+  }
+
+  return res.json({ success: false });
 });
 
-// 🌐 Basic route (optional)
+// test route
 app.get("/", (req, res) => {
-  res.send("Server is running");
+  res.send("Server running");
 });
 
-// 🚀 Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
