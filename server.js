@@ -4,10 +4,10 @@ const mongoose = require("mongoose");
 const app = express();
 app.use(express.json());
 
-// ✅ CONNECT TO MONGODB (uses Render env)
+// ✅ CONNECT TO MONGODB (with logs)
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log("Mongo ERROR:", err));
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch(err => console.log("❌ Mongo ERROR:", err));
 
 // schema
 const keySchema = new mongoose.Schema({
@@ -32,7 +32,7 @@ app.post("/check", async (req, res) => {
       return res.json({ success: false });
     }
 
-    // first time use → bind device
+    // first time → bind device
     if (!found.device) {
       found.device = device;
       await found.save();
@@ -48,7 +48,7 @@ app.post("/check", async (req, res) => {
     return res.json({ success: false });
 
   } catch (err) {
-    console.log("CHECK ERROR:", err);
+    console.log("❌ CHECK ERROR:", err);
     return res.status(500).json({ success: false });
   }
 });
