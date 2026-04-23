@@ -1,11 +1,10 @@
-require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 
 const app = express();
 app.use(express.json());
 
-// connect MongoDB
+// ✅ CONNECT TO MONGODB (uses Render env)
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log("Mongo ERROR:", err));
@@ -18,7 +17,7 @@ const keySchema = new mongoose.Schema({
 
 const Key = mongoose.model("Key", keySchema);
 
-// ✅ SAFE CHECK ROUTE
+// ✅ CHECK KEY
 app.post("/check", async (req, res) => {
   try {
     const { key, device } = req.body;
@@ -33,16 +32,19 @@ app.post("/check", async (req, res) => {
       return res.json({ success: false });
     }
 
+    // first time use → bind device
     if (!found.device) {
       found.device = device;
       await found.save();
       return res.json({ success: true });
     }
 
+    // same device
     if (found.device === device) {
       return res.json({ success: true });
     }
 
+    // different device
     return res.json({ success: false });
 
   } catch (err) {
